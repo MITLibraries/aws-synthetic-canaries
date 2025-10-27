@@ -1,0 +1,26 @@
+# Python related
+**/.mypy_cache
+
+# Node.js related
+**/node_modules/
+
+# Test related
+**/coverage/
+
+# SAM related
+**/.aws-sam/
+
+# asdf related
+.tool-versions
+
+# Skip .env wherever it might appear
+.env
+
+# macOS related
+**.DS_Store
+
+# VSCode related
+.vscode/
+
+# asdf related
+.tool-versions
