@@ -1,0 +1,18 @@
+# Simple testing for Javascipt and Node.js
+name: Javascript/Node CI
+
+on:
+    workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+    test:
+        name: Run tests and report coverate
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install
+              run: |
+                  make install
+                  make test
