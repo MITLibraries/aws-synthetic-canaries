@@ -24,3 +24,6 @@
 
 # asdf related
 .tool-versions
+
+# Local dev related
+**/*.zip
