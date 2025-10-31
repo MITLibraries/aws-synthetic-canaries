@@ -1,7 +1,7 @@
 /**
  * Tests for _checkUrl() using mocked Lambda Function URL
  */
-const { _checkUrl } = require('../nodejs/index.js');
+const { _checkUrl } = require('../index.js');
 const https = require('https');
 
 const TEST_URL = 'https://fake.url.com'

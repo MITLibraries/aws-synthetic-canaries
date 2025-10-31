@@ -14,14 +14,14 @@
     "verbose": true,
     "silent": true,
     "roots": [
-      "../tests"
+      "<rootDir>/tests"
     ],
     "testMatch": [
       "**/*.test.js"
     ],
     "moduleNameMapper": {
-      "^Synthetics$": "<rootDir>/../tests/__mocks__/Synthetics.js",
-      "^SyntheticsLogger$": "<rootDir>/../tests/__mocks__/SyntheticsLogger.js"
+      "^Synthetics$": "<rootDir>/tests/__mocks__/Synthetics.js",
+      "^SyntheticsLogger$": "<rootDir>/tests/__mocks__/SyntheticsLogger.js"
     }
   }
 }

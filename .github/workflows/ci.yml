@@ -13,9 +13,10 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Install
-              run: |
-                  make install
-                  make test
+              run: make install-all
+            - name: Test
+              run: make test-all
+
     # This is just in here for some initial testing; it will move to its own
     # workflow soon
     deploy:
@@ -35,4 +36,6 @@ jobs:
                 aws-region: us-east-1
 
             - name: Upload ZIP
-              run: make deploy-dev PROJ=lambda_function_url_checker
+              run: |
+                cd lambda_function_url_checker
+                make dev-publish

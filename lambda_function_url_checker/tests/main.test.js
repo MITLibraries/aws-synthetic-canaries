@@ -5,7 +5,7 @@
 jest.mock('Synthetics'); // Uses __mocks__/Synthetics.js
 jest.mock('SyntheticsLogger'); // <- uses __mocks__/SyntheticsLogger.js
 
-const { main } = require('../nodejs/index.js');
+const { main } = require('../index.js');
 const synthetics = require('Synthetics');
 const log = require('SyntheticsLogger');
 
