@@ -21,12 +21,12 @@ When deploying a CloudWatch Synthetic Canary, a runtime must be specified. The r
 ```hcl
 resource "aws_synthetics_canary" "js_node_puppet" {
   name                 = "<name-of-canary>"
-  artifact_s3_location = "s3://${data.aws_ssm_parameter.canary_artifact_bucket.value}/path/to/canary/artifacts"
+  artifact_s3_location = "s3://<artifact_bucket_name>/path/to/canary/artifacts"
   execution_role_arn   = aws_iam_role.canary_execution_role.arn
   handler              = "index.handler"
   start_canary         = true
   runtime_version      = "syn-nodejs-puppeteer-11.0"
-  s3_bucket            = "s3://${data.aws_ssm_parameter.canary_source_bucket_name.value}"
+  s3_bucket            = "s3://<source_bucket_name>"
   s3_key               = "path/to/canary.zip"
   schedule {
     expression = "rate(99 minutes)"
