@@ -8,7 +8,7 @@ permissions: read-all
 
 jobs:
     test:
-        name: Run tests and report coverate
+        name: Run tests
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -16,3 +16,23 @@ jobs:
               run: |
                   make install
                   make test
+    # This is just in here for some initial testing; it will move to its own
+    # workflow soon
+    deploy:
+        name: Deploy ZIP to S3
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_DEV }}:role/aws-synthetic-canaries-gha-dev
+                aws-region: us-east-1
+
+            - name: Upload ZIP
+              run: make deploy-dev PROJ=lambda_function_url_checker
