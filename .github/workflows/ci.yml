@@ -39,3 +39,19 @@ jobs:
               run: |
                 cd lambda_function_url_checker
                 make dev-publish
+
+            - name: Publish S3 Key
+              run: |
+                cd lambda_function_url_checker
+                aws ssm put-parameter \
+                  --name "/apps/aws-synthetic-canaries/lambda_function_url_checker_key" \
+                  --type "String" \
+                  --description "S3 Key for the lambda_function_url_checker ZIP file" \
+                  --overwrite \
+                  --value "files/lambda_function_url_checker.zip"
+                aws ssm put-parameter \
+                --name "/apps/aws-synthetic-canaries/lambda_function_url_checker_runtime" \
+                --type "String" \
+                --description "CloudWatch Synthetic Canary Runtime for lambda_function_url_checker" \
+                --overwrite \
+                --value "$(cat .runtime)"
