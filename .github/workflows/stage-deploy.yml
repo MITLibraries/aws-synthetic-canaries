@@ -1,0 +1,47 @@
+# Deploy Canary fuction ZIP to Stage AWS Account
+name: Deploy ZIP to Stage
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  generate-matrix:
+    # See the .github/scripts/generate-matrix.sh for the details of the matrix
+    # construction.
+    name: Generate matrix for deploy
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate matrix
+        id: generate
+        run: |
+          chmod +x ./.github/scripts/generate-matrix.sh
+          ./.github/scripts/generate-matrix.sh
+
+  deploy:
+    name: Deploy ZIP to S3
+    needs: generate-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_STAGE }}:role/aws-synthetic-canaries-gha-dev
+          aws-region: us-east-1
