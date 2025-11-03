@@ -34,8 +34,11 @@ clean: # Clean all npm
 
 test: # Run tests
 	@if [ ! -d node_modules ]; then \
-		echo "Run 'make install' first!"; \
+		echo "Run 'make install' first! Exiting..."; \
 	fi && \
+	if [ ! -f "zipmanifest.txt" ]; then \
+		echo "No zipmanifest.txt file! Exiting..."; exit 1; \
+	fi; \
 	NODE_ENV=test npm test -- --coverage --coverageReporters=lcov --coverageReporters=text || exit $$?;
 
 
