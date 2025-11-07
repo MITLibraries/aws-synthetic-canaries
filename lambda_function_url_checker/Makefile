@@ -50,9 +50,8 @@ test: # Run tests
 # Local "deploy" commands
 ######################
 
-# Use a cli parameter to denote the folder (project) where the code resides.
-# Additionally, expect that the local ENV has S3BUCKET set so this command knows
-# where to copy the zip file.
+local-exec: # Run the index.js locally
+	@WORKSPACE=local node index.js
 
 zip: # Zip application code
 	@PROJ=$${PWD##*/}; \

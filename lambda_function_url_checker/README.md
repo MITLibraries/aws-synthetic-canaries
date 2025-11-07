@@ -4,7 +4,13 @@ A generic-ish CloudWatch Synthetic Canary to health-check Lambda Function URLs u
 
 ## Overview
 
-This is a CloudWatch Synthetic Canary application that is Javasctip/Nodejs/Puppeteer-based. The following file structure is expected for an application like this:
+This canary can be used to test any deployed Lambda that has a Function URL. This is acheived by making an HTTP post request with a JSON payload to the Lambda's Function URL and then monitoring just the HTTP response code. 
+
+**Note**: The Canary itself will be deployed by the same Terraform repository that deploys the Lambda. That Terraform repo will set the URL and payload string environment variables as part of the definition of the Canary.
+
+Broadly speaking, a 200 response is all that's required to demonstrate the lambda is not idle.
+
+This CloudWatch Synthetic Canary application that is built on Javascript/Nodejs/Puppeteer and expects the `syn-nodejs-puppeteer-11.0` runtime. The following file structure is expected for an application like this:
 
 ```bash
 .
