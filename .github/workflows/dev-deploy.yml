@@ -1,0 +1,70 @@
+# Deploy Canary fuction ZIP to Dev AWS Account
+name: Deploy ZIP to Dev
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  generate-matrix:
+    # See the .github/scripts/generate-matrix.sh for the details of the matrix
+    # construction.
+    name: Generate matrix for deploy
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate matrix
+        id: generate
+        run: |
+          chmod +x ./.github/scripts/generate-matrix.sh
+          ./.github/scripts/generate-matrix.sh
+
+  deploy:
+    name: Deploy ZIP to S3
+    needs: generate-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_DEV }}:role/aws-synthetic-canaries-gha-dev
+          aws-region: us-east-1
+
+      - name: Upload ZIP
+        working-directory: ${{ matrix.paths }}
+        run: |
+          zip -r ${{ matrix.paths }}.zip -@ < zipmanifest.txt
+          aws s3 cp ${{ matrix.paths }}.zip s3://$(aws ssm get-parameter --name "/tfvars/init/shared-files-bucket-id" --query "Parameter.Value" --output text)/files/${{ matrix.paths }}.zip
+
+      - name: Publish S3 Key
+        working-directory: ${{ matrix.paths }}
+        run: |
+          PATHS_DASHED=$(echo "${{ matrix.paths }}" | tr '_' '-')
+          aws ssm put-parameter \
+            --name "/apps/aws-synthetic-canaries/${PATHS_DASHED}-key" \
+            --type "String" \
+            --description "S3 Key for the ${{ matrix.paths }} ZIP file" \
+            --overwrite \
+            --value "files/${{ matrix.paths }}.zip"
+          aws ssm put-parameter \
+            --name "/apps/aws-synthetic-canaries/${PATHS_DASHED}-runtime" \
+            --type "String" \
+            --description "CloudWatch Synthetic Canary Runtime for ${{ matrix.paths }}" \
+            --overwrite \
+            --value "$(cat .runtime)"

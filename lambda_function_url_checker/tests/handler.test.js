@@ -2,7 +2,7 @@
  * Tests for handler() using mocked Lambda Function URL
  */
 
-const index = require('../nodejs/index.js');
+const index = require('../index.js');
 
 describe('handler/main wiring tests', () => {
     afterEach(() => {
