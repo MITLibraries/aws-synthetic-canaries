@@ -1,0 +1,17 @@
+{
+  "github": {
+    "ref": "refs/tags/v1.0.2",
+    "sha": "822f71253e2aab9fe1a13f243ac30dc9ca140509",
+    "head_ref": "",
+    "base_ref": "",
+    "event_name": "release",
+    "ref_name": "v1.0.2",
+    "ref_type": "tag",
+    "event": {
+      "action": "published",
+      "repository": {
+        "default_branch": "main"
+      }
+    }
+  }
+}
