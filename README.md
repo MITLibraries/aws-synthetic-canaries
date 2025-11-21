@@ -44,11 +44,11 @@ In particular, the following values are exported for each application (e.g., fol
 * `<application_name>_key`: This is the S3 key in the shared files S3 bucket where the ZIP file is saved by the automated deployment process. This information is required by Terraform to correctly build the Canary.
 * `<application_name>_runtime`: This is the expected runtime for the application that is designated in the `.runtime` file in the application folder. This information is required by Terraform to correctly build the Canary.
 
-Because different Canary runtimes required different ZIP file/folder structure, the developer must also create a `zipmanifest.txt` file to list the files/folders that should be ZIPped for the specified runtime. For example, the `syn-node-puppeteer-10.0` runtime required a nested folder structure for the Javascript files, but `syn-node-puppeteer-11.0` just needs the single `.js` file zipped up, with no folder structure.
+Because different Canary runtimes require different ZIP file/folder structure, the developer must also create a `zipmanifest.txt` file to list the files/folders that should be ZIPped for the specified runtime. For example, the `syn-node-puppeteer-10.0` runtime required a nested folder structure for the Javascript files, but `syn-node-puppeteer-11.0` just needs the single `.js` file zipped up, with no folder structure.
 
 ## Makefile
 
-There is a `Makefile` at the root of the repository which has a set of shared commands for all the projects/apps in the monorepo. The targets in this `Makefile` are set to just run commands in `Makefiles` in all of the project subdirectories.
+There is a `Makefile` at the root of the repository which has a set of shared commands for all the projects/apps in the monorepo. The targets in this `Makefile` are set to just run commands in each `Makefile` in all of the project subdirectories.
 
 * `make install-all`: Dependency install for all project subfolders (it just runs `make install` in each folder)
 * `make update-all`: Dependency updates for all proejct subfolders (it just runs `make update` in each folder)
@@ -62,54 +62,23 @@ There are four GitHub Actions workflows in total, one for CI and three for deplo
 
 The CI workflow, just executes the `make install-all` and `make test-all` for all the projects.
 
-The deploy workflow is a bit more complicated. First, using the [generate-matrix.sh](.github/scripts/generate-matrix.sh) script, it creates a list of all the top-level folders that have changes in the current commit/branch in GitHub. That list gets passed to the next job in the workflow as a matrix, so that the Action will run the deployment steps for each folder with changes. If the feature branch only has changes in one canary folder, only one deployment will get pushed to AWS. If there are changes across multiple top level folders, the deployment workflow will deploy each of those applications to S3 during the Action run.
+The deploy workflows are a bit more complicated. First, using the [generate-matrix.sh](.github/scripts/generate-matrix.sh) script, it creates a list of all the top-level folders that have changes in the current commit/branch in GitHub. That list gets passed to the next job in the workflow as a matrix, so that the Action will run the deployment steps for each folder with changes. If the feature branch only has changes in one canary folder, only one deployment will get pushed to AWS. If there are changes across multiple top level folders, the deployment workflow will deploy each of those applications to S3 during the Action run.
 
 ### generate-matrix.sh
 
-The [generate-matrix.sh](.github/scripts/generate-matrix.sh) script generates a list of top level folders that have changes, as determined by `git diff` between two different commit SHAs. It saves the list as a JSON object so that it can be used by the `strategy.matrix` method in GitHub actions. For more details on `strategy.matrix`, see [GitHub: Running variations of a job in a workflow](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
+The [generate-matrix.sh](.github/scripts/generate-matrix.sh) script generates a list of top level folders that have changes, as determined by a `git diff` between two different commit SHAs. It saves the list as a JSON object so that it can be used by the `strategy.matrix` method in GitHub actions. For more details on `strategy.matrix`, see [GitHub: Running variations of a job in a workflow](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
 
-The expectation is that [generate-matrix.sh](.github/scripts/generate-matrix.sh) will run in the context of a GitHub Action. So, testing this script locally requires setting some environment variables that would normally be set in the context of a GitHub Action. For this script, the required GHA env vars are
-
-* `GITHUB_EVENT_CREATED`: This is false unless this is the first push of a new branch to GitHub
-* `GITHUB_EVENT_BEFORE`: The commit SHA of the branch before the push (for `on: push`) or the the previous commit SHA for the `HEAD` of the branch being merged (for `on: pull_request`)
-* `GITHUB_SHA`: The SHA of the commit that triggered the workflow (it's the `HEAD` commit for `on: push`, it's a temporary merge commit for `on: pull_request`, it's the most recent commit on the selected branch for `on: workflow_disptach)
-
-To run a local test, this is the easiest method:
-
-```bash
-GITHUB_EVENT_CREATED=false \
-  GITHUB_SHA=<commit_sha> \ 
-  GITHUB_EVENT_BEFORE=<earlier_commit_sha> \
-  ./.github/scripts/generate-matrix.sh
-```
-
-To test what happens on the first push of a new branch, just use this instead:
-
-```bash
-GITHUB_EVENT_CREATED=true \
-  GITHUB_SHA=<commit_sha> \ 
-  GITHUB_EVENT_BEFORE=<earlier_commit_sha> \
-  ./.github/scripts/generate-matrix.sh
-```
-
-To verify that the script is properly exporting the matrix, use this:
-
-```bash
-export GITHUB_OUTPUT=$(mktemp) && \
-  GITHUB_EVENT_CREATED=false \
-  GITHUB_SHA=<commit_sha> \
-  GITHUB_EVENT_BEFORE=<earlier_commit_sha> \
-  ./.github/scripts/generate-matrix.sh && \
-  cat $GITHUB_OUTPUT
-```
+The expectation is that [generate-matrix.sh](.github/scripts/generate-matrix.sh) will run in the context of a GitHub Action. So, testing this script locally requires setting some environment variables that would normally be set in the context of a GitHub Action. **For more details on testing this script, see [tests/README.md](tests/README.md)**.
 
 ## Related Assets
 
 This section provides descriptions of any infrastructure and application github repositories that this infrastructure application is related to.
 
-### This Repsitory Depends On
+### This Repository Depends On
 
-* [mitlib-tf-workloads-init](https://github.com/mitlibraries/mitlib-tf-workloads-init) The "init" repo builds the OIDC Role/Policy/Configuration that is used by GitHub Actions in this repository. The Actions here cannot run without the "init" infrastructure already in place.
+* [mitlib-tf-workloads-init](https://github.com/mitlibraries/mitlib-tf-workloads-init) 
+  * The "init" repo builds the OIDC Role/Policy/Configuration that is used by GitHub Actions in this repository. The Actions here cannot run without the "init" infrastructure already in place.
+  * The "init" repo builds the "shared" S3 bucket where the ZIP file of the application is stored
 
 ## Depends On This Repository
 
