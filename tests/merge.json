@@ -1,0 +1,17 @@
+{
+  "github": {
+    "sha": "822f71253e2aab9fe1a13f243ac30dc9ca140509",
+    "head_ref": "",
+    "base_ref": "",
+    "event_name": "push",
+    "event": {
+      "after": "822f71253e2aab9fe1a13f243ac30dc9ca140509",
+      "base_ref": null,
+      "before": "ba6c894301102a04d5b1acc1bb311af8dca71872",
+      "ref": "refs/heads/main",
+      "repository": {
+        "default_branch": "main"
+      }
+    }
+  }
+}

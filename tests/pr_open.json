@@ -1,0 +1,22 @@
+{
+  "github": {
+    "sha": "aee5195fe299014735128e21ec9c730e3c7773e6",
+    "head_ref": "flow-test-3",
+    "base_ref": "main",
+    "event_name": "pull_request",
+    "event": {
+      "action": "opened",
+      "pull_request": {
+        "base": {
+          "sha": "ba6c894301102a04d5b1acc1bb311af8dca71872"
+        },
+        "head": {
+          "sha": "b476d87d818766287d5c1c0010c36858df270384"
+        }
+      },
+      "repository": {
+        "default_branch": "main"
+      }
+    }
+  }
+}
