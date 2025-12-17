@@ -2,7 +2,6 @@
 name: Deploy ZIP to Dev
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -19,12 +18,21 @@ jobs:
     # construction.
     name: Generate matrix for deploy
     runs-on: ubuntu-latest
+    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
+    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 10
       - name: Generate matrix
         id: generate
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ACTION: ${{ github.event.action }}
         run: |
           chmod +x ./.github/scripts/generate-matrix.sh
           ./.github/scripts/generate-matrix.sh
@@ -36,12 +44,14 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
       fail-fast: false
     runs-on: ubuntu-latest
+    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
+    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_DEV }}:role/aws-synthetic-canaries-gha-dev
           aws-region: us-east-1

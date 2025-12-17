@@ -2,7 +2,6 @@
 name: Deploy ZIP to Stage
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -19,12 +18,21 @@ jobs:
     # construction.
     name: Generate matrix for deploy
     runs-on: ubuntu-latest
+    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
+    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 10
       - name: Generate matrix
         id: generate
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.event.after }}
+          ACTION: ${{ github.event_name }}
         run: |
           chmod +x ./.github/scripts/generate-matrix.sh
           ./.github/scripts/generate-matrix.sh
@@ -36,12 +44,37 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
       fail-fast: false
     runs-on: ubuntu-latest
+    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
+    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_STAGE }}:role/aws-synthetic-canaries-gha-dev
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCT_STAGE }}:role/aws-synthetic-canaries-gha-stage
           aws-region: us-east-1
+
+      - name: Upload ZIP
+        working-directory: ${{ matrix.paths }}
+        run: |
+          zip -r ${{ matrix.paths }}.zip -@ < zipmanifest.txt
+          aws s3 cp ${{ matrix.paths }}.zip s3://$(aws ssm get-parameter --name "/tfvars/init/shared-files-bucket-id" --query "Parameter.Value" --output text)/files/${{ matrix.paths }}.zip
+
+      - name: Publish S3 Key
+        working-directory: ${{ matrix.paths }}
+        run: |
+          PATHS_DASHED=$(echo "${{ matrix.paths }}" | tr '_' '-')
+          aws ssm put-parameter \
+            --name "/apps/aws-synthetic-canaries/${PATHS_DASHED}-key" \
+            --type "String" \
+            --description "S3 Key for the ${{ matrix.paths }} ZIP file" \
+            --overwrite \
+            --value "files/${{ matrix.paths }}.zip"
+          aws ssm put-parameter \
+            --name "/apps/aws-synthetic-canaries/${PATHS_DASHED}-runtime" \
+            --type "String" \
+            --description "CloudWatch Synthetic Canary Runtime for ${{ matrix.paths }}" \
+            --overwrite \
+            --value "$(cat .runtime)"
