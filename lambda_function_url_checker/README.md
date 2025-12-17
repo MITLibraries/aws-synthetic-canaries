@@ -4,7 +4,7 @@ A generic-ish CloudWatch Synthetic Canary to health-check Lambda Function URLs u
 
 ## Overview
 
-This canary can be used to test any deployed Lambda that has a Function URL. This is acheived by making an HTTP post request with a JSON payload to the Lambda's Function URL and then monitoring just the HTTP response code. 
+This canary can be used to test any deployed Lambda that has a Function URL. This is acheived by making an HTTP post request with a JSON payload to the Lambda's Function URL and then monitoring just the HTTP response code.
 
 **Note**: The Canary itself will be deployed by the same Terraform repository that deploys the Lambda. That Terraform repo will set the URL and payload string environment variables as part of the definition of the Canary.
 
@@ -73,6 +73,12 @@ Starting with the `syn-nodejs-puppeteer-11.0` runtime, the only thing that needs
 
 ```hcl
   handler = "canary.handler"
+```
+
+To see the list of available runtimes, the following AWS CLI command is the quickest option:
+
+```bash
+aws synthetics describe-runtime-versions
 ```
 
 ## Dependencies / Environment
