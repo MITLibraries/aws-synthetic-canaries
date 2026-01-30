@@ -60,6 +60,10 @@ jobs:
     # Only run if the content of "paths" is not empty in the matrix 
     if: ${{ fromJson(needs.generate-matrix.outputs.matrix).paths[0] != null }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
       - name: Configure AWS credentials for Stage
         uses: aws-actions/configure-aws-credentials@v5
         with:
