@@ -44,7 +44,7 @@ There is a `Makefile` with a short list of useful commands/targets. To use `make
 
 ## Runtime
 
-When deploying a CloudWatch Synthetic Canary, a runtime must be specified. The runtime for this canary is `syn-nodejs-puppeteer-x.y` and is set in the [`.runtime`](./.runtime) file in this folder. The deployment automation in GitHub Actions will push the key to the ZIP file and the designated runtime value to SSM Parameter Store so that Terraform can pick up these values programmatically. Typically, the canary is deployed with Terraform:
+When deploying a CloudWatch Synthetic Canary, a runtime must be specified. The runtime for this canary is `syn-nodejs-puppeteer-13.1` and is set in the [`.runtime`](./.runtime) file in this folder. The deployment automation in GitHub Actions will push the key to the ZIP file and the designated runtime value to SSM Parameter Store so that Terraform can pick up these values programmatically. Typically, the canary is deployed with Terraform:
 
 ```hcl
 resource "aws_synthetics_canary" "js_node_puppet" {
