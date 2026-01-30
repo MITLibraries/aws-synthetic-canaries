@@ -80,6 +80,8 @@ The big difference here is that while the SHA values are the same as the tests a
 
 ### Test tagged release workflow (prod-deploy.yml)
 
+There is a `bash` script, [test_release_workflow.sh](./test_release_workflow.sh) that can be used to test this workflow. From the root of the repository, just run `./tests/test_release_workflow.sh` to see what will happen. If you want to do this test manually or change some of the parameters, keep reading.
+
 The [prod-deploy.yml](.github/workflows/prod-deploy.yml) workflow is triggered when an approved PR is merged to the `main` branch. The reference file for the GitHub Actions context for this trigger is [release.json](tests/release.json). Testing this is a little tricky! When this runs in GitHub Actions, the `actions/checkout` is defaulted to the `main` branch. If you are not in the `main` branch locally, the script will not run correctly.
 
 Before running the command below for local testing, it's expected that a separate working directory for the `main` branch is created and set in the environment, like this:

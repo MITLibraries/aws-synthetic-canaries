@@ -14,19 +14,36 @@ jobs:
     # construction.
     name: Generate matrix for deploy
     runs-on: ubuntu-latest
-    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 10
+          fetch-tags: true
+
+      - name: Get Previous Release
+        # We list the tags, sort them, and then use sed to print the 2nd tag (the first tag is the current release)
+        id: prev-release
+        run: |
+          PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+          if [ -z "$PREV_TAG" ]; then
+            echo "-- this is the first release --"
+            echo "first_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Previous tag: $PREV_TAG"
+            PREV_SHA=$(git rev-list -n 1 "$PREV_TAG")
+            echo "prev_sha=$PREV_SHA" >> "$GITHUB_OUTPUT"
+            echo "first_release=false" >> "$GITHUB_OUTPUT"
+          fi
+    
       - name: Generate matrix
         id: generate
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           HEAD_SHA: ${{ github.sha }}
+          BASE_SHA: ${{ steps.prev-release.outputs.prev_sha }}
+          FIRST_RELEASE: ${{ steps.prev-release.outputs.first_release }}
           ACTION: ${{ github.event.action }}
         run: |
           chmod +x ./.github/scripts/generate-matrix.sh
@@ -39,8 +56,8 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
       fail-fast: false
     runs-on: ubuntu-latest
-    # This line adds a check for the user which is requesting the PR. As long as its not dependabot, we go ahead and run it. 
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+    # Only run if the content of "paths" is not empty in the matrix 
+    if: ${{ fromJson(needs.generate-matrix.outputs.matrix).paths[0] != null }}
     steps:
       - name: Configure AWS credentials for Stage
         uses: aws-actions/configure-aws-credentials@v5

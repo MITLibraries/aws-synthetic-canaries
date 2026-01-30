@@ -25,19 +25,31 @@ set -euo pipefail
 # HEAD_SHA: ${{ github.event.after }}
 # ACTION: ${{ github.event.action }}
 
-# Check if this is a published release; if so, set BASE_SHA value to the SHA 
-# of the previous tagged release (this is the only workflow that does not get 
-# BASE_SHA in the default env)
-# Addtionally, check if this is running as a local test (and if it is, use an
+# By default, the "release" trigger does NOT set BASE_SHA in the environment. 
+# Our workflow gracefully handles this by setting that value (if it exists) and
+# setting a FIRST_RELEASE boolean so that we can gracefully handle the first 
+# tagged release that will not have a BASE_SHA value.
+
+# The only time FIRST_RELEASE is "true" is for the very first tagged release
+# on the `main` branch. We generate an empty "paths" list in the JSON output
+# and then exit the script.
+if [ "${FIRST_RELEASE:-false}" == "true" ]; then
+  echo "--first release: nothing to deploy--"
+  JSON='{"paths":[]}'
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+    echo "$JSON" >> "$GITHUB_OUTPUT"
+    echo "EOF" >> "$GITHUB_OUTPUT"
+  fi
+  echo "$JSON"
+  exit 0
+fi
+
+# Check if this is running as a local test (and if it is, use an
 # isolated work directory for the `main` branch)
-if [ "${ACTION:-}" == "published" ]; then
-  if [ "${LOCAL_TEST:-}" == "true" ]; then
+if [ "${LOCAL_TEST:-}" == "true" ]; then
     echo "--test tagged release in special working directory--"
     BASE_SHA=$(git -C "${WORK_DIR}" rev-parse $(git -C "${WORK_DIR}" describe --tags --abbrev=0 main^))
-  else
-    echo "--tagged release workflow--"
-    BASE_SHA=$(git rev-parse $(git describe --tags --abbrev=0 main^))
-  fi
 fi
 
 # We allow for a test "diff" to be passed to the script for local testing

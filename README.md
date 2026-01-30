@@ -18,8 +18,8 @@ See the `README.md` in each folder for details on the specific application.
 
 ## Development Overview
 
-* Creating a new canary is as simple as creating a root level folder
-* A single canary may perform checking for one or many applications; it provides a method but is agnostic to what application it's used to check
+* Creating a new canary is as simple as creating a new root level folder
+* A single canary may perform checking for one or many applications; it provides a method but is agnostic to what application it's going to check
 * Each canary in this repository (that is, each top-level folder) will have a few hard requirements:
   * A `.runtime` file in the folder that designates the expected Synthetics Canary runtime (see [AWS: Synthetics runtime versions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries_Library.html))
   * A `Makefile` with (at a minimum) `install`, `update`, and `test` targets (as these are expected by the root [Makefile](./Makefile))
@@ -27,13 +27,13 @@ See the `README.md` in each folder for details on the specific application.
 
 ## Deployment Overview
 
-Deploying (or building) in this repository simply means copying a ZIP file of an application to a shared S3 bucket in AWS. That ZIP file is like a blueprint (or template) application that can be loaded into a Synthetic Canary that is built by Terraform to monitor an HTTP/HTTPS endpoint. It will be helpful to have both a `zip` and a `dev-publish` targets in the canary folder `Makefile` so that it will be easy for the developer to deploy the ZIP to Dev1 for testing in AWS.
+Deploying (or building) in this repository simply means copying a ZIP file of an application to a shared S3 bucket in AWS. That ZIP file is like a blueprint (or template) application that can be loaded into a Synthetic Canary that is built by Terraform to monitor an HTTP/HTTPS endpoint. It will be helpful to have both `zip` and `dev-publish` targets in the canary folder `Makefile` so that it will be easy for the developer to deploy the ZIP to Dev1 for testing in AWS.
 
-The rest of the deployment process is handled by GitHub Actions, following the MITL typical GitHub-flow:
+The rest of the deployment process is handled by GitHub Actions, following the DLS typical GitHub-flow:
 
-* Opening a PR to `main` will deploy the ZIP to our dev AWS account (and create/update SSM Parameters)
-* Merging a PR to `main` will deploy the ZIP to our stage AWS account (and create/update SSM Parameters)
-* Tagging a release on `main` will deploy the ZIP to our prod AWS account (and create/update SSM Parameters)
+* Opening a PR to `main` will deploy the ZIP to our Dev1 AWS account (and create/update SSM Parameters in Dev1)
+* Merging a PR to `main` will deploy the ZIP to our Stage-Workloads AWS account (and create/update SSM Parameters in Stage-Workloads)
+* Tagging a release on `main` will deploy the ZIP to our Prod-Workloads AWS account (and create/update SSM Parameters in Prod-Workloads)
 
 ## General Overview
 
@@ -41,10 +41,10 @@ The general idea of this repository is to de-couple the actual CloudWatch Synthe
 
 In particular, the following values are exported for each application (e.g., folder) here:
 
-* `<application_name>_key`: This is the S3 key in the shared files S3 bucket where the ZIP file is saved by the automated deployment process. This information is required by Terraform to correctly build the Canary.
+* `<application_name>_key`: This is the S3 key in the "shared files" S3 bucket where the ZIP file is saved by the automated deployment process. This information is required by Terraform to correctly build the Canary.
 * `<application_name>_runtime`: This is the expected runtime for the application that is designated in the `.runtime` file in the application folder. This information is required by Terraform to correctly build the Canary.
 
-Because different Canary runtimes require different ZIP file/folder structure, the developer must also create a `zipmanifest.txt` file to list the files/folders that should be ZIPped for the specified runtime. For example, the `syn-node-puppeteer-10.0` runtime required a nested folder structure for the Javascript files, but `syn-node-puppeteer-11.0` just needs the single `.js` file zipped up, with no folder structure.
+Because different Canary runtimes require different ZIP file/folder structure, the developer must also create a `zipmanifest.txt` file to list the files/folders that should be ZIPped for the specified runtime. For example, the `syn-node-puppeteer-10.0` runtime required a nested folder structure for the Javascript files, but `syn-node-puppeteer-11.0` (and later) just needs the single `.js` file zipped up, with no folder structure.
 
 ## Makefile
 
@@ -82,10 +82,11 @@ This section provides descriptions of any infrastructure and application github 
 
 ## Depends On This Repository
 
-* [mitlib-tf-workloads-apt](https://github.com/mitlibraries/mitlib-tf-workloads-apt): The APT infrastructure repository creates a Canary to monitor the APT Lambda Function URL (using the code in [lambda_function_url_checker](./lambda_function_url_checker/).
+* [mitlib-tf-workloads-apt](https://github.com/mitlibraries/mitlib-tf-workloads-apt): The APT infrastructure repository creates a Canary to monitor the APT Lambda Function URL (using the code in [lambda_function_url_checker](./lambda_function_url_checker/)).
+* [mitlib-tf-workloads-cpds-storage](https://github.com/mitlibraries/mitlib-tf-workloads-cdps-storage): The CDPS infrastructure repository creates a Canary to monitor the [s3-bagit-validator](https://github.com/mitlibraries/s3-bagit-validator) Lambda Function URL (using the code in [lambda_function_url_checker](./lambda_function_url_checker/)).
 
 ## Maintainers
 
 * Owner: See [CODEOWNERS](./.github/CODEOWNERS)
 * Team: See [CODEOWNERS](./.github/CODEOWNERS)
-* Last Maintenance: 2025-11
+* Last Maintenance: 2026-01
