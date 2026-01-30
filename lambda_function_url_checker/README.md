@@ -10,7 +10,7 @@ This canary can be used to test any deployed Lambda that has a Function URL. Thi
 
 Broadly speaking, a 200 response is all that's required to demonstrate the lambda is not idle.
 
-This CloudWatch Synthetic Canary application that is built on Javascript/Nodejs/Puppeteer and expects the `syn-nodejs-puppeteer-11.0` runtime. The following file structure is expected for an application like this:
+This CloudWatch Synthetic Canary application that is built on Javascript/Nodejs/Puppeteer and expects the `syn-nodejs-puppeteer-13.1` runtime. The following file structure is expected for an application like this:
 
 ```bash
 .
@@ -44,7 +44,7 @@ There is a `Makefile` with a short list of useful commands/targets. To use `make
 
 ## Runtime
 
-When deploying a CloudWatch Synthetic Canary, a runtime must be specified. The runtime for this canary is `syn-nodejs-puppeteer-11.0` and is set/noted in the `.runtime` file in this folder. The deployment automation in GitHub Actions will push the key to the ZIP file and the designated runtime value to SSM Parameter Store so that Terraform can pick up these values programmatically. Typically, the canary is deployed with Terraform:
+When deploying a CloudWatch Synthetic Canary, a runtime must be specified. The runtime for this canary is `syn-nodejs-puppeteer-x.y` and is set in the [`.runtime`](./.runtime) file in this folder. The deployment automation in GitHub Actions will push the key to the ZIP file and the designated runtime value to SSM Parameter Store so that Terraform can pick up these values programmatically. Typically, the canary is deployed with Terraform:
 
 ```hcl
 resource "aws_synthetics_canary" "js_node_puppet" {
@@ -75,10 +75,10 @@ Starting with the `syn-nodejs-puppeteer-11.0` runtime, the only thing that needs
   handler = "canary.handler"
 ```
 
-To see the list of available runtimes, the following AWS CLI command is the quickest option:
+To see the list of available Nodejs/Puppeteer runtimes, the following AWS CLI command is the quickest option:
 
 ```bash
-aws synthetics describe-runtime-versions
+aws synthetics describe-runtime-versions | grep syn-nodejs-puppeteer
 ```
 
 ## Dependencies / Environment
